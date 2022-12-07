@@ -1,0 +1,18 @@
+Structure 
+Nature 
+Scalability
+Property
+
+
+## Relational
+- Structure: Predefined 
+- Nature: Concentrated
+- Scalability: vertical is more supported( not horizontal)
+- Property ACID property. Data integrirty, consistent
+
+## No SQL
+- sturcture: works on unstructured data
+    - Key value : redis, dynamo db
+    - Document db : mongo db  ```can query on both key and values```
+    - Column db : cassandra
+    - Graph db : Neo4J
