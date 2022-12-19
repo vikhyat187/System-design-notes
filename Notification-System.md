@@ -35,9 +35,9 @@ SMS handler
 
 
 ## Links
-[code karle](https://www.codekarle.com/system-design/Notification-system-design.html)
-[enjoy algorithms](https://www.enjoyalgorithms.com/blog/notification-service)
-[notification api (best resource)](https://www.notificationapi.com/blog/notification-service-design-with-architectural-diagrams)
+[code karle](https://www.codekarle.com/system-design/Notification-system-design.html)<br>
+[enjoy algorithms](https://www.enjoyalgorithms.com/blog/notification-service)<br>
+[notification api (best resource)](https://www.notificationapi.com/blog/notification-service-design-with-architectural-diagrams)<br>
 
 
 
