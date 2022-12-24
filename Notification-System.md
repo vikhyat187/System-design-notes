@@ -1,6 +1,8 @@
 # Functional requirements
-- Send notifications ✅
-- Plugable (support any kind of notifications)
+- Send notifications ✅ 
+- Plugable (support any kind of notifications) Mail, whatsapp, SMS(India & abroad), in app notifications
+- Create surveys on time preference.
+- 100% Delivery, message to be delivered as soon as the device gets connected. (push or pull model)
 - Saas
 - Prioritization. (different priority of messages)
 - Do we want the flow to be async?
