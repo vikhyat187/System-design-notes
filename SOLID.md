@@ -82,5 +82,57 @@ class InvoiceDao{
    
  ## Liskov substitution principle 
  
+ If class B is an subtype of class A then we can replace the obj of class A by class B without breaking the code.
 
+
+## Interface segmented principle
+
+Divide the interface into smaller peices so that the user need not implement unnecessary things.
+```
+Interface RestaurantEmployee{
+  public void washDish();
+  public void cookFood();
+  public void serveCustomer();
+}
+
+Interface waiterInterface(){
+  public void serveFood();
+  public void takeOrder();
+ }
+ 
+ 
+ Interface chefInterface{
+   public void cookFood();
+   public void decideMenu();
+
+```
+ 
+ ## Dependency inversion
+
+class should dependent on interface rather than concreate implementation
+
+
+```
+class Macbook{
+  private Keyboard keyboard;
+  private Mouse mouse;
+  
+  public Macbook(){
+    this.keyboard = wiredKeyboard;
+    this.mouse = wiredMouse;
+  }
+}
+
+
+class Macbook{
+  private Keyboard keyboard;
+  private Mouse mouse;
+  
+  public Macbook(Keyboard keyboard, Mouse mouse){
+    this.keyboard = keyboard;
+    this.mouse = mouse;
+    }
+ }
+ 
+ ```
  
