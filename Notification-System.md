@@ -6,6 +6,20 @@
 - Saas
 - Prioritization. (different priority of messages)
 - Do we want the flow to be async?
+- ankush can send notification to some users
+- some users can be notified on some activity of not being active
+- calendar to send notfication based on their subscription
+- they need to be some dashboard to see no of notifications sent
+- users preferences to be kept in mind
+- 
+
+
+
+
+
+
+
+
 
 # Non Functional requirements
 - High availability (what if the user isn't avaiable)
