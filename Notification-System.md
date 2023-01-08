@@ -13,14 +13,6 @@
 - users preferences to be kept in mind
 - 
 
-
-
-
-
-
-
-
-
 # Non Functional requirements
 - High availability (what if the user isn't avaiable)
 - Analysis of our notifications sent (Do we need this?) 
@@ -57,5 +49,10 @@ SMS handler
 
 
 
-
+Services
+- mobile -> twillio
+- email -> smtp server, mail chimp
+- push -> firebase push notification
+- in app -> browser
+- 
 
