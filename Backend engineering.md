@@ -11,7 +11,9 @@ Communication protocols
 - [ ] stateful vs stateless caching
 - [ ] messaging system 
 - [ ] security 
-  - [ ] TLS security 
+  - [ ] TLS security [how internet works](https://www.cloudflare.com/en-gb/learning/network-layer/how-does-the-internet-work/)
+  - [ ] DNS
+  - [ ] HTTP
   - [ ] stop Man in middle attack
   - [ ] firewalls
   - [ ] VPN
