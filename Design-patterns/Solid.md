@@ -1,3 +1,14 @@
+OOPs design principles
+1. DRY 
+2. SRP
+3. Open closed
+4. liskov substitution
+5. dependency inversion
+6. interface segregation
+7. delegation
+
+
+
 ## S -> single responsibility
 
 ``` 
