@@ -19,3 +19,21 @@ Objects
 - snake, ladder
 - Board
 - Players
+- cells 
+
+
+class Player{
+   String id;
+   int CurrentPosition; //should be ideally (X,Y) position
+ }
+ 
+class Dice{
+   int diceCount;
+   
+   rollDice(){
+      int totalSum = 0;
+      int diceUsed = 0;
+      
+      
+}   
+
