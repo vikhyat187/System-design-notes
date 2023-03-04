@@ -159,8 +159,10 @@ class ExitGate{ //cost computation
   Ticket ticket;
   CostComputationFactory costComputationFactory;
   Payment payment;
+  ParkingSpotManager parkingSpotManager;
   
   costComputationFactory.price();
+  parkingSpotManager.removeVehicle();
  }
  
  class CostComputationFactory{
