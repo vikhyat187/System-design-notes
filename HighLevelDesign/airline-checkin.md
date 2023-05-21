@@ -30,3 +30,10 @@
 
 
 <img width="585" alt="Screenshot 2023-04-23 at 3 18 13 PM" src="https://user-images.githubusercontent.com/52795644/233832432-f1b3973b-70ea-4dd9-8f87-9cd012fd2528.png">
+
+
+Feedbacks
+- have good requirements gathering
+- show the data model
+- check if all the requirements are clarified
+- what is the time to market
