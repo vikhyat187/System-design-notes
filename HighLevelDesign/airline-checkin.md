@@ -37,3 +37,9 @@ Feedbacks
 - show the data model
 - check if all the requirements are clarified
 - what is the time to market
+- with the no check if single machine will fit our requirements or do we require more machines
+- why should we have distributed system 
+  - because our single machine cannot be durable with data
+  - if our req / sec is too high then we need to have multiple machines
+  - no spof
+- sharding techniques
