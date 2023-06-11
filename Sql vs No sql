@@ -16,3 +16,12 @@ Property
     - Document db : mongo db  ```can query on both key and values```
     - Column db : cassandra
     - Graph db : Neo4J
+
+
+## Mongodb vs Sql 
+- Mongodb is optimised for write performance
+- Sql is optimised for joins
+- mongo db acid but against a single doc in the table.
+
+
+A good Book software architect elevator
