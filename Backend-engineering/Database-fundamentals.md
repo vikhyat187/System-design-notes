@@ -26,3 +26,16 @@
 
 ## Durability
 - Storing the commited data in non volatile storage, so that its not lost.
+
+## Row vs Column based database
+
+| Row | Column |
+| --- | -------| 
+| stores data in rows | stores data in cols| 
+| optimal read/ writes | not optimal | 
+| good for multi col query |  Not good with multi col query | 
+| OLTP | OLAP| 
+| Compressison isn't efficient | efficient | 
+| aggregation isn't efficient | efficient | 
+| efficient query with multi col | not efficient with multi col | 
+| ------------------| --------------------- | 
