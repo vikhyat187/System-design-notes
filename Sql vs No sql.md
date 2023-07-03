@@ -23,6 +23,6 @@ Property
 - Sql is optimised for joins
 - mongo db acid but against a single doc in the table.
 
-![Uploading Screenshot 2023-07-03 at 9.37.54 PM.png…](screenshot)
+<img width="958" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/fb96b4bb-4de2-48af-bf4c-2c28b58a9963">
 
 A good Book software architect elevator
