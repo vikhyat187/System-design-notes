@@ -22,6 +22,7 @@ Property
 - Mongodb is optimised for write performance
 - Sql is optimised for joins
 - mongo db acid but against a single doc in the table.
+![Uploading Screenshot 2023-07-03 at 9.37.54 PM.png…]()
 
 
 A good Book software architect elevator
