@@ -6,3 +6,6 @@
 
 ## caching the values
 <img width="970" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/26974986-46fd-4d75-978a-133d1c4a44a5">
+
+## creating the object
+<img width="838" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/99dc0d7b-7f9b-40e1-9158-3aa4db2e27fd">
