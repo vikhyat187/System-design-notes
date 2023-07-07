@@ -29,3 +29,7 @@ A good Book software architect elevator
 
 How to choose a database
 <img width="1219" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/916abc95-076b-4365-bd74-74e45c47fbbe">
+
+<img width="1247" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/97e7a457-ee52-4fa9-9aeb-a13269df81d7">
+
+
