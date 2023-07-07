@@ -36,3 +36,9 @@ How to choose a database
 
 <img width="1255" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/c564aa4a-8c46-49e0-a864-e6e265470d3f">
 
+# Normalisation
+
+1. First normal form (1NF): A table in 1NF is in a state where every column contains only unique data. This means that there are no duplicate rows in the table.
+2. Second normal form (2NF): A table in 2NF is in a state where every column that is not the primary key is functionally dependent on the primary key. This means that the value of a column can be determined by the value of the primary key.
+3. Third normal form (3NF): A table in 3NF is in a state where there are no transitive dependencies. A transitive dependency is a dependency between two columns where the value of one column is determined by the value of another column, which is in turn determined by the primary key.
+
