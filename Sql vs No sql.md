@@ -32,4 +32,7 @@ How to choose a database
 
 <img width="1247" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/97e7a457-ee52-4fa9-9aeb-a13269df81d7">
 
+<img width="1014" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/3c55bbcd-f277-4268-950d-91e1365a9fa4">
+
+<img width="1255" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/c564aa4a-8c46-49e0-a864-e6e265470d3f">
 
