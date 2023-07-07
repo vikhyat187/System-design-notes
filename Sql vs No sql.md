@@ -26,3 +26,6 @@ Property
 <img width="958" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/fb96b4bb-4de2-48af-bf4c-2c28b58a9963">
 
 A good Book software architect elevator
+
+How to choose a database
+<img width="1219" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/916abc95-076b-4365-bd74-74e45c47fbbe">
