@@ -46,3 +46,7 @@ How to choose a database
 
 
 <img width="1299" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/6b452c0a-ae85-44a5-9c6c-7cc374a5c6dc">
+
+
+## Joins
+<img width="700" alt="image" src="https://github.com/vikhyat187/System-design-notes/assets/52795644/daf2966b-e9de-4ebe-8dc1-8fd6c6ac8ecf">
