@@ -15,3 +15,8 @@ For eg :
 Decorator has a base pizza (Base + topping), it is also a pizza.
 
 # Class explosion is avoided using decorator pattern 
+Its very simple we have a base pizza class they can be diff types of base pizza we can instantiate the diff objects for the base pizza like Farm pizza, Veggie pizza and these can have the different toppings so we create a abstract class for the toppings, like cheese topping, mushroom topping.
+
+#### As the topping pizza is also a pizza so it extends the pizza class and its a additional layer over the base pizza so it has the base pizza
+
+## it has both `is-a` and `has-a` relationship.
