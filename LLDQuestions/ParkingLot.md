@@ -17,26 +17,28 @@ Design a parking spot to park the vehicles, collect charges from them.
   - vehicle no
   
 - Parking spot
-  - spot type 
+  - spot type (enum = electric vehicle, SUV, hatchback, Bus...)
   - spot id
-  - isFree
-  - price
+  - isFree (boolean)
+  - price (float)
   
 - Ticket
-  - vehicle Id
-  - entry time
-  - price
-  - parking spot id
+  - vehicle Id (uuid)
+  - entry time (epoch)
+  - price (float)
+  - parking spot id (uuid)
   
 - entry gate
   - find parking space (how better it can be made ) ***
-  - update parking space
-  - generateticket
+  - update parking space (make `isFree` to false)
+  - generateticket (use the document service that generates the ticket)
   
 - exit gate
   - parking charge
   - payment
   - freeparking spot
+
+Gate objects are created based on some condition so we can use the factory design pattern here mostly.
   
 - floors
   - No floors for now
