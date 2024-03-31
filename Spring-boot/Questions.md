@@ -1,4 +1,4 @@
-(link)[https://www.turing.com/interview-questions/spring-boot]
+[link](https://www.turing.com/interview-questions/spring-boot)
 
 - The @Component annotation is a core annotation from the Spring Framework and is also used in Spring Boot. It is a generic stereotype annotation used to mark a class as a Spring-managed component.
 
