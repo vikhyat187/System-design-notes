@@ -40,3 +40,120 @@ Eg :
   - Visitor Pattern: `java.nio.file.FileVisitor`
 
 Design patterns are like tools in your toolbox. Use them wisely to tackle most of programming challenges.
+Spring bean 
+Two types its created lazy and eager
+
+eager - startup of application
+lazily - when required
+Scope = prototype - lazy beans
+
+how are the beans looked 
+- @Component scan
+- @Configuration - bean initialised using @Bean
+
+
+
+## Prototype - clone of object
+1. private memebers can be only present for the class level, we might not be able to access them via constructor or attr.
+2. Here the client has to be knowing what to copy and what not copy
+
+** Prototype interface **
+- here the class will expose the method clone.
+** Advantages **
+- Class is aware of what fields to show / expose and what not.
+
+
+## Singleton pattern
+1. Make the constructor is private
+
+- Eager initialisation
+private static DBConnection connObject = new DBConnection();
+
+- Lazy initialisation
+initialise only when required
+```
+private static DBConnection connObject;
+
+private DBConnection(){
+	
+}
+
+public static DBConnection getInstance(){
+	if (connObject == null){
+		return new DBConnection();
+	}
+	return connObject;
+}
+```
+**Problem**
+if two threads parallely calls this then it creates two objects.
+
+- Synchronised method
+
+```
+public class DBConnection{
+	private DBConnection(){
+
+	}
+
+	private static DBConnection connObject;
+
+	synchronized public static DBConnection getInstance(){
+		if (connObject == null){
+			return new DBConnection();
+		}
+	return connObject;
+	}
+}
+```
+
+The problem with this approach is every time a request comes, it has to take a lock on the method, even though we have initialised the object, the locking is a pretty expensive operation.
+
+
+- Double locking
+Here we check two times if the object is created then only we create it else we skip creation
+
+```
+
+public class DBConnection{
+	private static DBConnection connObject;
+
+	private DBConnection(){
+
+	}
+
+	public static DBConnection getInstance(){
+		if (connObject == null){
+			syncrhonized (DBConnection.class){
+				if (connObject == null){
+					connObject = new DBConnection();
+				}
+			}
+		}
+		return connObject;
+	}
+}
+```
+
+
+## Factory pattern
+If we wanted to have a change in the condition of object creation then we will have the changes at only one place instead of multiple places
+
+## Abstract factory pattern 
+In this you return a factory of factory and from the second factory you get the actual objects
+
+
+## Builder pattern
+when you wanted to create the object in step by step manner
+
+## Decorator pattern
+- the decorator pattern is helping to add the extra functionality to the base object dynamically without creating a combined class before hand.
+- A decorator pattern class extends the base class and add extra functions to the base class
+
+## Proxy design pattern
+- THe proxy design pattern is a proxy to access your objects, this can be used if you wanted to add the restrictions on some object methods access, like admin can only access them..
+
+Having a controlled access to the methods
+
+## Composite pattern
+- 
