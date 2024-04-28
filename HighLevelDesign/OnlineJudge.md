@@ -84,3 +84,22 @@ Capabilities
 - Scalability
 - Test Coverage (Bonus Points)
 - [execution time limit] 3 seconds (java)
+
+
+Question
+- difficulty
+- tag
+- description
+- score
+
+Contestant
+- name
+- dept name
+- ratings
+
+Major clusters to focus on
+- Avg time computation
+- sorting of questions
+- assigning the score (This can vary based on your choice, eg giving the entire score or giving score based on the test cases and the time consumed)
+- finding the leader of the contest
+- Users should be able to find the Top K problems of a tag
