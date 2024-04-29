@@ -1,0 +1,8 @@
+- Goroutines are user space threads not the kernel space, so the OS scheduler cannot directly schedule them
+- They have very less memory footprint
+- The creation of goroutines, blocking on system call calls the scheduler
+- Kernel threads are expensive
+- We can use the benchmark to understand the things
+- A background thread is used to understand if the thread is a blocked thread
+- We can use GOMAXPROCS to set the number of kernel threads
+- For the long running CPU go routines we can preempt them by ourselves and send to the global run queue
