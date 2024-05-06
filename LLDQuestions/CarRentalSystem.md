@@ -84,3 +84,8 @@ ServiceID (Primary Key)
 ReservationID (Foreign Key)
 ServiceType (RoadsideAssistance, AdditionalDriver, Wifi, etc.)
 ServiceCost
+
+- carRentalLocation
+  - showroomid
+  - location(is this aggregation or composition) the location should be independent, today there is a showroom there, tomorrow they might be something else
+  - 
