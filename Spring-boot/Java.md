@@ -24,3 +24,50 @@ char[] charArray = {'H', 'e', 'l', 'l', 'o'};
 String s4 = new String(charArray);
 ```
 
+
+## Exception heirarchy
+
+Here is the exception hierarchy in Java:
+
+- `java.lang.Throwable`
+  - `java.lang.Error`
+    - `java.lang.AssertionError`
+    - `java.lang.LinkageError`
+      - `java.lang.ClassCircularityError`
+      - `java.lang.ClassFormatError`
+      - `java.lang.NoClassDefFoundError`
+      - `java.lang.UnsupportedClassVersionError`
+    - `java.lang.OutOfMemoryError`
+    - `java.lang.StackOverflowError`
+    - `java.lang.VirtualMachineError`
+      - `java.lang.InternalError`
+      - `java.lang.UnknownError`
+  - `java.lang.Exception`
+    - `java.lang.RuntimeException`
+      - `java.lang.ArithmeticException`
+      - `java.lang.ArrayIndexOutOfBoundsException`
+      - `java.lang.ArrayStoreException`
+      - `java.lang.ClassCastException`
+      - `java.lang.IllegalArgumentException`
+        - `java.lang.NumberFormatException`
+      - `java.lang.IllegalStateException`
+      - `java.lang.IndexOutOfBoundsException`
+      - `java.lang.NullPointerException`
+      - `java.lang.SecurityException`
+      - `java.lang.UnsupportedOperationException`
+    - `java.lang.ReflectiveOperationException`
+      - `java.lang.ClassNotFoundException`
+      - `java.lang.IllegalAccessException`
+      - `java.lang.InstantiationException`
+      - `java.lang.NoSuchFieldException`
+      - `java.lang.NoSuchMethodException`
+    - `java.io.IOException`
+      - `java.io.FileNotFoundException`
+      - `java.io.InterruptedIOException`
+      - `java.io.UTFDataFormatException`
+      - `java.io.UnsupportedEncodingException`
+    - `java.sql.SQLException`
+    - `java.net.MalformedURLException`
+    - `java.net.UnknownHostException`
+
+This hierarchy shows the main classes and some common subclasses. Note that there are many more specific exceptions in the Java standard library.
