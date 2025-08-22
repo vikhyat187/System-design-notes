@@ -1,0 +1,38 @@
+## need for kafka
+- kafka is a event streaming
+- we are using this to make the producers and consumers independent of each other
+- <img width="1068" height="603" alt="image" src="https://github.com/user-attachments/assets/9cce91e4-5a58-456d-a560-780174847f65" />
+- for processing the events in right order we need to send them into the correct partition too
+- Topics are to seggregate the events they are consuming
+- <img width="1062" height="598" alt="image" src="https://github.com/user-attachments/assets/5fba1c05-5331-4143-9ddf-2875419127c6" />
+- Broker are the servers which holds the queue
+- partition are the physical queue which holds the messages
+- topics are the grouping of paritions
+- <img width="1082" height="590" alt="image" src="https://github.com/user-attachments/assets/f5b69db0-b2e3-460d-a0ae-746932a97a66" />
+- <img width="881" height="581" alt="image" src="https://github.com/user-attachments/assets/6a24966a-5307-4d69-a456-3df9d29025e1" />
+- <img width="1069" height="602" alt="image" src="https://github.com/user-attachments/assets/e9f22851-b066-49aa-a1e4-d914b4b9a520" />
+- <img width="1049" height="576" alt="image" src="https://github.com/user-attachments/assets/d42556ad-4004-4dbb-af9f-0b15845d4ed3" />
+- <img width="1064" height="591" alt="image" src="https://github.com/user-attachments/assets/f231032a-76a0-4269-a2fb-401d96ba228a" />
+- <img width="1072" height="603" alt="image" src="https://github.com/user-attachments/assets/519cb23f-f918-4bf8-b1aa-5712ae71bc86" />
+- <img width="996" height="437" alt="image" src="https://github.com/user-attachments/assets/f3248db5-7fc0-4703-a5bb-454a09a764d8" />
+- Scalability
+  - Aim for <1MB per message
+  - <img width="881" height="493" alt="image" src="https://github.com/user-attachments/assets/75d13094-e178-405e-bd21-34c5b88e65b0" />
+  - one broker can handle upto 1TB of data and 10k messages per second
+  - How can we scale the kafka
+    - we can scale by choosing a good partition key (otherwise all our data will be on a single partition)
+    - Adding more brokers
+  - <img width="561" height="293" alt="image" src="https://github.com/user-attachments/assets/90deeb66-2d1d-488c-b044-612c8228724b" />
+  - if we are having the partition key on the ad id, we will have too many clicks on a popular advertise
+  - acks - the value of count of followers to get the value untill we consider it as sucessful
+  - replication factor the number of followers to get the data
+  - what happens when kafka goes down
+    - Kafka will not go down, due to the replication and durability it has
+    - <img width="1056" height="590" alt="image" src="https://github.com/user-attachments/assets/c859b65d-bc5e-4486-a54d-ffc81d79256c" />
+    - rebalances happens when the consumer goes down
+    - producer retries
+    - consumer retries
+    - <img width="1108" height="590" alt="image" src="https://github.com/user-attachments/assets/bc11b7b9-3454-4fae-bd11-75ad99b6c622" />
+    - optimisations in producers
+    - <img width="1059" height="599" alt="image" src="https://github.com/user-attachments/assets/68499553-0417-4f1d-b2a4-12fb87a86e1b" />
+
