@@ -16,6 +16,7 @@ Eg :
   - Abstract Factory Pattern: `javax.xml.parsers.DocumentBuilderFactory`
 
 2. Structural Patterns: Deal with the composition of classes and objects to form larger structures or relationships. They focus on achieving efficient object composition by providing mechanisms to represent relationships between objects. Structural patterns help in designing flexible and reusable code structures
+- the structural design pattern is more responsible for the skeleton of how the various classes are arranged together.
 
 Eg :
   - Adapter Pattern: `java.util.Arrays#asList()`
@@ -26,7 +27,7 @@ Eg :
   - Flyweight Pattern: `java.lang.Integer#valueOf()`
   - Facade Pattern: `javax.faces.context.FacesContext`
 
-3. Behavioural Patterns: focus on the interaction and communication between objects, defining how they collaborate and distribute responsibilities. These patterns help in designing the flow of communication and behavior among objects to achieve more flexible and maintainable systems. Behavioral patterns enable different objects to work together effectively.
+3. Behavioural Patterns: focus on the `interaction and communication between objects`, defining how they collaborate and distribute responsibilities. These patterns help in designing the flow of communication and behavior among objects to achieve more flexible and maintainable systems. Behavioral patterns enable different objects to work together effectively.
 
 Eg :
   - Observer Pattern: `java.util.Observable` and `java.util.Observer`
