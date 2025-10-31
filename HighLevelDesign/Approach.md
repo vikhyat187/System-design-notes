@@ -57,3 +57,28 @@
 - This avoids the HTTP overheads of HTTP headers, URL parsing and other things
 <img width="762" height="406" alt="image" src="https://github.com/user-attachments/assets/d0f486e9-8a5f-40eb-b521-73b5e48ee86e" />
 
+## is-a and has-a relationship
+- the is-a is representing the inheritance
+- has-a represents the composition
+- in the association also we can have the weak association and strong association
+<img width="1009" height="566" alt="image" src="https://github.com/user-attachments/assets/7b7a1916-482f-4a4a-8bde-7b974634aeb4" />
+- in the weak association the two entities can exist if one of them is removed - also we don't manage the another object here
+```java
+Library has books
+
+class Library{
+  List<Book> books;
+}
+
+```
+- in the strong association if one of the entity is removed the another one is also gets removed
+```java
+House has rooms
+
+public class House{ // house manages the rooms here
+  List<Room> rooms;
+  public void addRoom(Room room){
+    rooms.add(room);
+  }
+
+```
