@@ -1,0 +1,11 @@
+## Functional requirements
+- Users can add products, update their quantities
+- A cart belongs to a user
+- adding an item to the cart should reflect the inventory (reserve the inventory items)
+    - follow up question, what if the user has just added the product in the cart and never purchased should we block that item permanently?
+    - I think no
+- A cart can be converted to the order by making the booking
+- user can apply coupons to their cart
+- cart should be able to track the product, their listing, their quantities, total price
+- can user apply multiple coupons? or only single coupon is allowed?
+- 
