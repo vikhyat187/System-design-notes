@@ -146,5 +146,11 @@ class Macbook{
  }
  
  ```
+
+## DRY 
+- Do not repeat yourself
+- This principles suggests that not to repeat your logic in multiple places in the code
+- Like one of the problem we faced for this was the KYC record creation logic present in multiple places instead of one common utility method present, due to this what happened was the KYC record was getting created without an expiry date.
+
  
 
