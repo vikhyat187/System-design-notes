@@ -18,3 +18,5 @@
 <img width="1000" height="537" alt="image" src="https://github.com/user-attachments/assets/f10adf2d-19e6-46a8-b5f8-9dabe969184f" />
 <img width="1021" height="550" alt="image" src="https://github.com/user-attachments/assets/efdda852-efe3-45f7-857e-c449d5fc32d5" />
 
+#### command pattern
+<img width="1134" height="641" alt="image" src="https://github.com/user-attachments/assets/b415737c-8ce1-40e8-993e-636b0ae6792b" />
