@@ -26,4 +26,12 @@ Delay the creation of expensive objects until they are actually needed.
 4. Firewall Proxies:
 Filter and control network traffic based on predefined rules.
 
+
+## Decorator pattern
+<img width="683" height="427" alt="image" src="https://github.com/user-attachments/assets/39b5449d-ab6b-45ef-9991-53fc75652d6d" />
+<img width="846" height="438" alt="image" src="https://github.com/user-attachments/assets/4a885cfa-6cd9-4219-8fbe-f614bfd8b620" />
+<img width="998" height="465" alt="image" src="https://github.com/user-attachments/assets/78429856-fa73-48ce-a33a-aec4ca632525" />
+
+
+
 ‍
