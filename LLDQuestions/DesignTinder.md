@@ -98,322 +98,386 @@ Decorator Pattern: The Decorator pattern can be used to add additional features 
 Strategy Pattern: The Strategy pattern can be used to implement different matching algorithms based on user preferences and location.
 
 State Pattern: The State pattern can be used to manage the different states of user interactions, such as swiping, messaging, or browsing profiles.
+Nice — let’s design **Tinder-like app** at a focused low-level design (LLD) level: classes, interfaces, key methods, data models, flow sequences, concurrency concerns, and a thorough list of edge cases + mitigations. I’ll keep it Java-centric and interview-ready so you can talk through code-level details and trade-offs.
 
-Code: Detailed Implementation of Classes Based on Each Design Pattern Mentioned Above
+---
+
+# 1 — Scope & assumptions (what we design)
+
+* User registration & profile (photos, bio, location)
+* Swipe discovery (left/right/super) — never re-show same profile twice
+* Matching (when two users both swipe right)
+* Realtime chat between matched users (basic)
+* In-app notification (match, message)
+* Subscription (free/premium affecting features)
+* Location-aware discovery (radius filtering)
+* Keep it single-region single-process friendly (later scale out)
+
+I’ll omit full HLD infra detail (we keep it LLD — classes & logic).
+
+---
+
+# 2 — Key domain entities (POJOs)
+
 ```java
-// User class
-class User {
-    private String userId;
-    private String username;
-    private String password;
-    private String bio;
-    private List<String> pictures;
-    // Other attributes and methods
+// Enums
+public enum Reaction { LEFT, RIGHT, SUPER }
+public enum Gender { MALE, FEMALE, OTHER }
+public enum SubscriptionTier { FREE, PREMIUM }
 
-    public User(String userId, String username, String password) {
-        this.userId = userId;
-        this.username = username;
-        this.password = password;
-        this.pictures = new ArrayList<>();
-    }
-
-    // Getters and setters
-    // Methods to manage pictures, bio, and preferences
-}
-
-// Match class
-class Match {
-    private User user1;
-    private User user2;
-    private LocalDateTime matchTime;
-    // Other attributes and methods
-
-    public Match(User user1, User user2) {
-        this.user1 = user1;
-        this.user2 = user2;
-        this.matchTime = LocalDateTime.now();
-    }
-
-    // Getters and setters
-}
-
-// Message class
-class Message {
-    private String messageId;
-    private User sender;
-    private User receiver;
-    private String content;
-    private LocalDateTime timestamp;
-    // Other attributes and methods
-
-    public Message(String messageId, User sender, User receiver, String content) {
-        this.messageId = messageId;
-        this.sender = sender;
-        this.receiver = receiver;
-        this.content = content;
-        this.timestamp = LocalDateTime.now();
-    }
-
-    // Getters and setters
-}
-
-// Location class
-class Location {
-    private double latitude;
-    private double longitude;
-    // Other attributes and methods
-
-    public Location(double latitude, double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
-    // Getters and setters
-}
-
-// ProfileDecorator interface (Decorator)
-interface ProfileDecorator {
-    String decorateProfile(User user);
-}
-
-// PremiumFeatureDecorator class (Decorator)
-class PremiumFeatureDecorator implements ProfileDecorator {
-    private User user;
-
-    public PremiumFeatureDecorator(User user) {
-        this.user = user;
-    }
-
-    @Override
-    public String decorateProfile(User user) {
-        // Add premium features to the user's profile
-        return "Premium: " + user.getBio();
-    }
-}
-
-// PresenceObserver interface
-interface PresenceObserver {
-    void onPresenceChange(User user, boolean online);
-}
-
-// PresenceManager class (Singleton)
-class PresenceManager {
-    private static PresenceManager instance;
-    private Map<User, Boolean> presenceMap;
-    private List<PresenceObserver> observers;
-
-    private PresenceManager() {
-        this.presenceMap = new HashMap<>();
-        this.observers = new ArrayList<>();
-    }
-
-    public static synchronized PresenceManager getInstance() {
-        if (instance == null) {
-            instance = new PresenceManager();
-        }
-        return instance;
-    }
-
-    public void setPresence(User user, boolean online) {
-        presenceMap.put(user, online);
-        notifyObservers(user, online);
-    }
-
-    public void addObserver(PresenceObserver observer) {
-        observers.add(observer);
-    }
-
-    public void removeObserver(PresenceObserver observer) {
-        observers.remove(observer);
-    }
-
-    private void notifyObservers(User user, boolean online) {
-        for (PresenceObserver observer : observers) {
-            observer.onPresenceChange(user, online);
-        }
-    }
-}
-
-// MessagingSystem class (Publish-Subscribe)
-class MessagingSystem {
-    private Map<String, List<Message>> messageHistory;
-    private Map<User, List<String>> userChannels;
-    // Other attributes and methods
-
-    public MessagingSystem() {
-        this.messageHistory = new HashMap<>();
-        this.userChannels = new HashMap<>();
-    }
-
-    public void subscribe(User user, String channel) {
-        List<String> channels = userChannels.computeIfAbsent(user, k -> new ArrayList<>());
-        channels.add(channel);
-    }
-
-    public void unsubscribe(User user, String channel) {
-        List<String> channels = userChannels.get(user);
-        if (channels != null) {
-            channels.remove(channel);
-        }
-    }
-
-    public void publishMessage(Message message, String channel) {
-        List<Message> channelMessages = messageHistory.computeIfAbsent(channel, k -> new ArrayList<>());
-        channelMessages.add(message);
-        sendMessageToSubscribers(message, channel);
-    }
-
-    private void sendMessageToSubscribers(Message message, String channel) {
-        List<User> subscribers = new ArrayList<>();
-        for (Map.Entry<User, List<String>> entry : userChannels.entrySet()) {
-            User user = entry.getKey();
-            List<String> channels = entry.getValue();
-            if (channels.contains(channel) && !user.equals(message.getSender())) {
-                subscribers.add(user);
-            }
-        }
-
-        for (User subscriber : subscribers) {
-            subscriber.receiveMessage(message);
-        }
-    }
-
-    // Other messaging system methods
-}
-
-// MatchingAlgorithm interface (Strategy)
-interface MatchingAlgorithm {
-    List<User> findPotentialMatches(User user, List<User> users);
-}
-
-// SimpleMatchingAlgorithm class (Strategy)
-class SimpleMatchingAlgorithm implements MatchingAlgorithm {
-    @Override
-    public List<User> findPotentialMatches(User user, List<User> users) {
-        // Implement a simple matching algorithm based on user preferences and location
-        // Return a list of potential matches
-    }
-}
-
-// SwipeState interface (State)
-interface SwipeState {
-    void handleSwipe(User user, User profile, boolean isSwipeRight);
-}
-
-// BrowsingState class (State)
-class BrowsingState implements SwipeState {
-    @Override
-    public void handleSwipe(User user, User profile, boolean isSwipeRight) {
-        // Handle swipe in browsing state (show profile details)
-    }
-}
-
-// MatchingState class (State)
-class MatchingState implements SwipeState {
-    @Override
-    public void handleSwipe(User user, User profile, boolean isSwipeRight) {
-        // Handle swipe in matching state (add to matches or continue browsing)
-    }
-}
-
-// SwipeManager class
-class SwipeManager {
-    private SwipeState currentState;
-
-    public SwipeManager() {
-        this.currentState = new BrowsingState();
-    }
-
-    public void handleSwipe(User user, User profile, boolean isSwipeRight) {
-        currentState.handleSwipe(user, profile, isSwipeRight);
-        // Update current state based on matching or browsing results
-    }
-}
-
-// SubscriptionPlan class
-class SubscriptionPlan {
-    private String planId;
+// User
+public class User {
+    private String id;            // uuid
     private String name;
-    private double price;
-    // Other attributes and methods
-
-    public SubscriptionPlan(String planId, String name, double price) {
-        this.planId = planId;
-        this.name = name;
-        this.price = price;
-    }
-
-    // Getters and setters
-    // Other subscription plan methods
+    private LocalDate dob;
+    private Gender gender;
+    private String bio;
+    private List<String> photoUrls;
+    private Location location;    // lat, lon, lastUpdated
+    private SubscriptionTier tier;
+    private NotificationPreferences notificationPreferences;
+    private Instant createdAt;
+    // getters/setters
 }
 
-// SubscriptionManager class
-class SubscriptionManager {
-    private List<SubscriptionPlan> subscriptionPlans;
-
-    public SubscriptionManager() {
-        this.subscriptionPlans = new ArrayList<>();
-    }
-
-    public void addSubscriptionPlan(SubscriptionPlan plan) {
-        subscriptionPlans.add(plan);
-    }
-
-    public void removeSubscriptionPlan(SubscriptionPlan plan) {
-        subscriptionPlans.remove(plan);
-    }
-
-    public List<SubscriptionPlan> getSubscriptionPlans() {
-        return Collections.unmodifiableList(subscriptionPlans);
-    }
-
-    // Other subscription management methods
+// Location
+public class Location {
+    double lat;
+    double lon;
+    Instant updatedAt;
 }
 
-// Main Class
-public class TinderDatingApp {
-    public static void main(String[] args) {
-        // Create users
-        User user1 = new User("user1", "John", "password1");
-        User user2 = new User("user2", "Alice", "password2");
+// Minimal profile filter / preferences
+public class SearchPreferences {
+    int minAge;
+    int maxAge;
+    Gender interestedIn;
+    double maxDistanceKm;
+    boolean onlyVerified;
+    // ...
+}
 
-        // Create profiles
-        user1.setBio("Hi, I'm John!");
-        user2.setBio("Hello, I'm Alice!");
-        user1.getPictures().add("picture1.jpg");
-        user2.getPictures().add("picture2.jpg");
+// Match record (one per pair)
+public class Match {
+    private String id; // deterministic: pairKey(userA, userB)
+    private String userA;
+    private String userB;
+    private Reaction aReaction; // reaction by userA to userB
+    private Reaction bReaction;
+    private boolean mutual;
+    private Instant createdAt;
+    private Instant updatedAt;
+}
+```
 
-        // Create matching algorithm
-        MatchingAlgorithm matchingAlgorithm = new SimpleMatchingAlgorithm();
-        List<User> potentialMatches = matchingAlgorithm.findPotentialMatches(user1, List.of(user2));
+---
 
-        // Create messaging system
-        MessagingSystem messagingSystem = new MessagingSystem();
-        messagingSystem.subscribe(user1, "user2");
-        messagingSystem.subscribe(user2, "user1");
-        messagingSystem.publishMessage(new Message("message1", user1, user2, "Hello, Alice!"), "user2");
+# 3 — Repos / Persistence interfaces (Repository pattern)
 
-        // Create swipe manager
-        SwipeManager swipeManager = new SwipeManager();
-        swipeManager.handleSwipe(user1, user2, true);
+```java
+public interface UserRepository {
+    User save(User u);
+    Optional<User> findById(String id);
+    List<User> findNearby(Location loc, double radiusKm, SearchPreferences pref, int limit, String cursor);
+    void updateLocation(String userId, Location loc);
+}
 
-        // Create presence manager
-        PresenceManager presenceManager = PresenceManager.getInstance();
-        presenceManager.setPresence(user1, true);
-        presenceManager.setPresence(user2, true);
+public interface MatchRepository {
+    Match upsertReaction(String fromUser, String toUser, Reaction reaction); // transactional
+    Optional<Match> findByPair(String userA, String userB);
+    List<Match> listMutualMatches(String userId, int limit, int offset);
+}
 
-        // Create subscription manager
-        SubscriptionManager subscriptionManager = new SubscriptionManager();
-        SubscriptionPlan plan1 = new SubscriptionPlan("plan1", "Gold Plan", 29.99);
-        SubscriptionPlan plan2 = new SubscriptionPlan("plan2", "Platinum Plan", 49.99);
-        subscriptionManager.addSubscriptionPlan(plan1);
-        subscriptionManager.addSubscriptionPlan(plan2);
+public interface SwipeRepository {
+    void appendSwipe(String fromUser, String toUser, Reaction reaction, Instant ts);
+    boolean seenPair(String fromUser, String toUser); // used to avoid re-showing
+}
+
+public interface MessageRepository {
+    void saveMessage(Message m);
+    List<Message> getRecentMessages(String convoId, int limit);
+}
+```
+
+Notes:
+
+* `upsertReaction` must canonicalize pair ordering and atomically update reactions; should return whether match turned mutual.
+
+---
+
+# 4 — Service layer (core classes & key methods)
+
+```java
+public class UserService {
+    private final UserRepository userRepo;
+    public User createOrUpdateProfile(User u) { ... }
+    public void updateLocation(String userId, Location loc) { ... }
+    public List<User> discover(String userId, SearchPreferences pref, int limit, String cursor) { ... }
+}
+
+public class SwipeService {
+    private final SwipeRepository swipeRepo;
+    private final MatchRepository matchRepo;
+    private final NotificationService notificationService;
+
+    // Called by client when user swipes
+    public SwipeResult swipe(String fromUser, String toUser, Reaction reaction, String idempotencyKey) {
+        // 1. Idempotency check
+        // 2. Append swipe event
+        // 3. Upsert reaction into Match repo (transactional)
+        // 4. If mutual formed -> create conversation & notify both users
     }
 }
+
+public class MatchService {
+    private final MatchRepository matchRepo;
+    public Optional<Match> getMatch(String userA, String userB) { ... }
+    public List<Match> listMatches(String userId) { ... }
+}
+
+public class ChatService {
+    private final MessageRepository messageRepo;
+    private final WebSocketGateway wsGateway;
+    public void sendMessage(String from, String to, String text) {
+        // 1. verify mutual match
+        // 2. persist message
+        // 3. route via wsGateway or push notification
+    }
+}
+
+public class NotificationService {
+    // from earlier design: createNotification, dispatch, preferences checks
+}
+```
+
+---
+
+# 5 — Controllers / API signatures
+
+* `POST /v1/users` — create/update profile
+* `POST /v1/users/{id}/location` — update location
+* `GET  /v1/discover?cursor=&limit=` — returns profiles to swipe
+* `POST /v1/swipe` — `{fromUserId, toUserId, reaction, requestId}`
+* `GET  /v1/matches` — mutual matches
+* `POST /v1/chat/send` — `{from, to, body}`
+* `GET  /v1/notifications` — read notification inbox
+* `PUT  /v1/notification-preferences` — update prefs
+
+All user endpoints require auth; internal endpoints use service auth.
+
+---
+
+# 6 — Important method-level details & pseudo logic
+
+## `SwipeService.swipe(...)` pseudo
+
+1. Validate users exist and are distinct.
+2. Idempotency: check `idempotencyStore` for key (if present, return previous result).
+3. Append swipe event to `SwipeRepository`.
+4. Call `MatchRepository.upsertReaction(from, to, reaction)` — does:
+
+   * canonicalize (a,b) = sort(userA,userB)
+   * if row exists, set appropriate `aReaction`/`bReaction`; else insert new row
+   * If now both sides are RIGHT or SUPER -> set mutual=true, createdAt set
+   * Return Match object with `mutual` flag and who caused it
+5. If returned match is mutual and the current call caused it:
+
+   * Create conversation id (deterministic based on pair)
+   * NotificationService.createNotification for both users (idempotent key = `match:matchId:userId`)
+6. Return `SwipeResult` (e.g., `{mutual: true/false, conversationId: id}`)
+
+Important: `upsertReaction` must be atomic to avoid race (two parallel swipes).
+
+---
+
+# 7 — Conversation & message model
+
+```java
+public class Message {
+    private String id;
+    private String convoId; // deterministic pair key
+    private String fromUser;
+    private String toUser;
+    private String text;
+    private Instant createdAt;
+    private boolean delivered;
+    private boolean read;
+}
+```
+
+Convo id = `convo:{min(userA,userB)}:{max(userA,userB)}`
+
+Chat flow:
+
+* Client sends message -> ChatService verifies match -> writes to MessageRepo -> publishes to wsGateway -> gateway delivers if online else NotificationService triggers push.
+
+---
+
+# 8 — In-memory caches & auxiliary stores
+
+* **Redis / local caches**:
+
+  * Idempotency keys (TTL ~ 24-48 hours)
+  * Presence: `user:{id}:online` TTL
+  * Device tokens per user
+  * Candidate caches: precomputed candidate lists for each user for quick discover
+* **Geospatial index**:
+
+  * For LLD, `UserRepository.findNearby` implemented via geohash prefix or PostGIS; but at LLD we expose API that consumes Location and radius.
+
+---
+
+# 9 — Concurrency & correctness considerations (low-level)
+
+### Atomic match upsert
+
+* Use DB upsert with unique constraint on (userA, userB) and `INSERT ... ON CONFLICT DO UPDATE` OR
+* Use compare-and-swap (optimistic locking) with `version` column, retry loop OR
+* Single-writer via leader (overkill). Best: DB atomic upsert + check returned row to detect newly mutual match.
+
+### Idempotency
+
+* All external actions causing side-effects (swipe, createNotification) must accept an idempotency key stored in Redis. If seen, return previous response.
+
+### Ordering and de-duplication for messages
+
+* Assign server-side monotonically increasing `messageSeq` per convo (DB auto-increment partitioned by convo or use timestamp + tie-break id). Clients dedupe on message id.
+
+### Rate-limiting
+
+* Per-user rate limits on swipes (e.g., free tier max 100/day), messages per minute, location updates, etc., enforced via token bucket in Redis.
+
+### Prevent re-showing same profile
+
+* Discovery must filter out any `toUser` where `SwipeRepository.seenPair(userId, toUser)` is true OR a match row exists with shown_to_X timestamp set. Mark shown timestamp when the profile was delivered to client.
+
+---
+
+# 10 — Testing & verifiability (unit/integration)
+
+* Unit tests for `SwipeService`:
+
+  * concurrent swipe race test: A->B and B->A concurrently should produce single mutual match and notify once.
+  * idempotency tests: same requestId returns same result.
+* Integration test with in-memory DB / transaction to verify `upsertReaction`.
+* Chat tests: message ordering, offline-to-online delivery simulation.
+
+---
+
+# 11 — Edge cases & mitigations (comprehensive)
+
+I’ll list each edge case and a practical mitigation.
+
+1. **Same match shown twice**
+
+   * Mitigation: store shown timestamps in Matches/Seen table and filter discovery queries. Also maintain client cursor and server-side candidate queue.
+
+2. **Race condition creating duplicate mutual events**
+
+   * Mitigation: atomic DB upsert to Match table returning whether mutual newly formed. Use idempotency key `match:matchId:userId` before sending notifications.
+
+3. **Idempotent failures (retries cause duplicate writes)**
+
+   * Mitigation: require clients to pass `X-Request-Id`; store mapping in Redis to original result.
+
+4. **Spoofed locations**
+
+   * Mitigation: heuristic checks (IP vs GPS), throttle frequent moves, obscuring exact coordinates (only store coarse geohash).
+
+5. **Bots / spam (mass swipes/messages)**
+
+   * Mitigation: phone verification, CAPTCHAs during signup, machine learning abuse detection, rate limits, manual review flags.
+
+6. **Unreliable push delivery**
+
+   * Mitigation: fallback to email for critical notifications; maintain device tokens; remove tokens on invalid push responses.
+
+7. **User deletes account right after match**
+
+   * Mitigation: soft-delete (mark `deleted_at`) and keep matches/messages for retention policy; prevent sending notifications to deleted users.
+
+8. **Message ordering issues**
+
+   * Mitigation: server assigns sequence or uses `createdAt` + unique id; clients order by sequence then id; server enforces monotonic increments per convo.
+
+9. **Offline user, unread notifications accumulate**
+
+   * Mitigation: batch notifications with throttling; client pulls on open to sync and server supports incremental fetch (cursor-based).
+
+10. **High QPS on discovery (hot users)**
+
+    * Mitigation: caching candidate lists and precomputing top-K for users; use Redis / sharded caches.
+
+11. **Geo boundary inaccuracies with geohash**
+
+    * Mitigation: when using geohash neighbors, always run Haversine final filter to ensure correct distance.
+
+12. **Payment & subscription sync issues**
+
+    * Mitigation: idempotent webhook handling; store payment event logs; avoid granting premium until payment confirmed.
+
+13. **Eventual consistency between services**
+
+    * Mitigation: design idempotent events, keep retries, and expose compensating actions (e.g., if notification failed, re-enqueue).
+
+14. **User blocks another user after sending message**
+
+    * Mitigation: check block list before delivering messages; maintain block relation in Match/Swipe logic.
+
+15. **Data privacy (leak of exact location)**
+
+    * Mitigation: only surface approximate distance (e.g., "within 5 km") and never raw coordinates to other users.
+
+16. **Scaling WebSocket connections**
+
+    * Mitigation: use session registry in Redis for routing, use pub/sub backbone so any WS node can deliver messages; handle reconnection gracefully.
+
+17. **Simultaneous profile updates**
+
+    * Mitigation: optimistic locking (version numbers) on profile updates; inform client on conflict.
+
+18. **Database deadlocks on heavy concurrent upserts**
+
+    * Mitigation: ensure consistent ordering of primary key accesses, use smaller transactions, add retry on serialization failures.
+
+19. **Malicious user creating thousands of accounts**
+
+    * Mitigation: rate-limit signups per IP, SMS verification, device fingerprinting.
+
+20. **GDPR right-to-be-forgotten**
+
+    * Mitigation: implement soft-delete and a deletion pipeline that erases PII after retention period, provide wipe endpoints.
+
+---
+
+# 12 — Small UML-ish ASCII (class relationships)
 
 ```
-In this code example, the User class represents a user of the dating app, the Match class represents a successful match between two users, the Message class represents a chat message between users, the Location class represents the geolocation of a user, the PremiumFeatureDecorator class adds premium features to user profiles, and the SubscriptionPlan class represents different subscription plans for premium services.
+[UserService] <>-- uses --> [UserRepository]
+[SwipeService] <>-- uses --> [SwipeRepository]
+[SwipeService] <>-- uses --> [MatchRepository]
+[MatchRepository] <>-- persists --> [Match table]
+[ChatService] <>-- uses --> [MessageRepository]
+[NotificationService] <>-- uses --> [NotificationSender (Strategy)]
+[WebSocketGateway] <--> [ChatService]  (deliver messages)
+```
 
-The app uses various design patterns, such as the Model-View-Controller (MVC) pattern for separating the app into three components, the Observer pattern for push notifications and presence updates, the Factory pattern for creating different types of objects based on user requests, the Singleton pattern for creating a single instance of the presence manager, the Proxy pattern for handling communication between the app and the server, the Command pattern for encapsulating actions, the Publish-Subscribe pattern for implementing the real-time messaging system, the Decorator pattern for adding premium features to user profiles, the Strategy pattern for different matching algorithms, and the State pattern for managing different user interactions during swiping.
+---
 
-Please note that this is a simplified example, and a complete implementation of a dating app involves more complex components, such as user authentication and authorization, user preferences and matching criteria, location-based matching, image processing for profile pictures, message persistence, user reporting and blocking mechanisms, handling user privacy and data security, and integration with external payment gateways for premium subscriptions.
+# 13 — Interview talking points (concise)
+
+* “We store swipes as an append-only event stream and keep a Match table (canonical pair key) for dedupe and mutual detection.”
+* “Use DB atomic upsert for match reactions to avoid double notifications on concurrent swipes.”
+* “Discovery filters by `seen` and `matches` to avoid re-showing; shown timestamps are persisted when results are returned to client.”
+* “Idempotency keys for operations that cause side-effects (swipe, notification) to protect against retries.”
+* “Rate-limit, phone verification and ML-based anti-spam for abuse prevention.”
+* “Chat uses persistent message store + WebSocket for realtime—server assigns sequence numbers to guarantee ordering.”
+
+---
+
+If you want next:
+
+* I can produce a **concrete Java class** for `SwipeService` showing `swipe()` implementation with pseudo DB calls and idempotency handling, **or**
+* generate a **sequence diagram** (text) for Swipe → Match → Notification → Chat flow.
+
+Which one should I produce now?
