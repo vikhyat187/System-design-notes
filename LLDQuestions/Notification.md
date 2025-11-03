@@ -673,3 +673,472 @@ public class Main {
 ---
 
 Would you like me to extend this a *tiny bit* to show **how provider routing (random / weighted)** can be abstracted into a separate `ProviderSelectionStrategy` class (a favorite follow-up in PhonePe machine rounds)?
+
+
+Whether you’re waiting for a login OTP, a delivery update, or a push notification for your favourite creator’s livestream — notifications are deeply woven into our digital lives. They’re expected to arrive instantly, be reliable, and contextually accurate.
+
+But behind the scenes, handling millions of notifications across channels like Email, SMS, and Push is far from simple.
+
+In this blog, I’ll break down how to design a scalable notification system, starting with the High-Level Design (HLD) and then drilling into the Low-Level Design (LLD). Along the way, we’ll explore architectural decisions, scalability patterns, and even some code.
+
+Let’s dive in.
+
+Before jumping into the design, it’s important to understand what we’re building.
+
+Functional Requirements:
+
+Send notifications through Email, SMS, and Push.
+Support user preferences (opt-in/out for certain types).
+Handle failures with retries.
+Support scheduled (future-dated) notifications.
+Log delivery status for analytics and auditing.
+Non-Functional requirements:
+
+High scalability and availability.
+Low latency for real-time sends.
+Observability (logs, metrics, alerts).
+Extensibility to add new channels in the future.
+System Requirements and Assumptions
+Before jumping into the technical details, let’s lay down some assumptions and define the goals for our notification system:
+
+Throughput: The system should be able to process 10,000 notifications per second during peak times.
+Channels: Notifications can be sent through multiple channels like email, SMS, and push notifications.
+Resiliency: The system should be fault-tolerant, meaning that if a notification delivery fails, it should be retried, and if it continues to fail, it should go into a dead-letter queue (DLQ).
+Scalability: The system should be horizontally scalable, allowing you to scale specific components (e.g., workers for each channel) independently.
+Components Overview
+1. Notification API
+This is the entry point for sending notifications to users. The API accepts a payload containing the notification details (e.g., user preferences, message content, target channels).
+The API is responsible for validating the request, formatting it correctly, and then publishing the notification message to a message queue (e.g., Kafka or SQS).
+2. Validator & Router
+Checks payload, validates required fields, and routes to the correct queue or worker.
+
+3. Message Queue (Kafka / SQS)
+Helps decouple producers and consumers, improves fault tolerance and scalability.
+
+4. Workers per Channel
+Each channel has its own consumer/worker service that reads from the queue and sends notifications using third-party providers like Twilio (SMS) or SendGrid (Email).
+
+5. Retry Mechanism & Dead Letter Queue:
+If a notification fails to be delivered, it’s retried with exponential backoff. If the notification continues to fail, it’s moved to a dead-letter queue for further investigation or manual intervention.
+
+Scalable Design
+Horizontal Scaling:
+
+Each worker service (email, SMS, push) can scale independently. If there’s a surge in SMS notifications, you can scale the SMS worker service without impacting the others.
+
+Queue Management:
+
+The use of Kafka or SQS ensures that you can handle high throughput. Each worker can process messages asynchronously, allowing the system to continue functioning even if some workers are temporarily unavailable.
+
+Fault Tolerance:
+
+With a retry mechanism and dead-letter queue, the system ensures that transient errors do not cause a notification to be lost. For persistent errors, notifications can be inspected in the dead-letter queue.
+
+Back-of-the-Envelope Calculations
+Let’s break down a few key calculations to understand the system’s requirements:
+
+Notifications per Second (NPS):
+
+Assuming we want to handle 10,000 notifications per second, we can calculate how many worker threads we need:
+If each worker can process 100 notifications per second, you’ll need 100 workers to handle this load.
+Queue Latency:
+
+If you’re using Kafka or SQS, assume a 10ms latency per message. If the queue is properly sized, the system should be able to handle up to 10,000 notifications per second without major bottlenecks.
+Scaling Workers:
+Each notification channel (email, SMS, push) needs its own set of workers. If each channel needs to handle 3,333 NPS, and each worker processes 100 notifications per second, you’ll need approximately 34 workers per channel.
+But do we actually need 34? Let’s consider:
+Can you batch notifications?
+If you can send notifications in batches (e.g., 10 at a time), each worker could technically handle 1,000 NPS, reducing the worker count to ~4 per channel. Most notification providers support some kind of bulk endpoint (Firebase for push, Twilio Messaging Services, etc.).
+
+2. Are messages evenly distributed?
+
+Load often comes in bursts, not steady streams. You may be able to autoscale workers or use queues with temporary surges instead of overprovisioning.
+
+3. Are you measuring peak or average?
+
+If 3,333 NPS is peak, you might design for lower capacity and implement:
+
+Retry mechanisms
+Backpressure
+Queue buffering
+4. Can workers be multi-threaded or async?
+
+If a worker can handle multiple tasks concurrently, the number of instances goes down significantly.
+
+5. What’s your latency tolerance?
+
+If you’re okay with a few seconds of delay, then you can buffer and throttle rather than trying to achieve real-time throughput.
+
+APIs required
+To facilitate interaction with the notification system, here are the essential APIs you’ll need:
+
+POST /notifications:
+This API allows clients to send notifications. It accepts a payload containing user preferences, message content, and notification channels.
+Example:
+{
+  "userId": "user123",
+  "channels": ["email", "sms"],
+  "message": "Your order has shipped",
+  "notificationType": "order_shipped",
+  "preferences": {"email": true, "sms": false}
+}
+2. GET /notifications/{notificationId}:
+
+This API allows clients to track the status of a notification. The response will include details such as delivery status, timestamp, and the channel used.
+3. POST /retry:
+
+This endpoint triggers a retry for xa failed notification.
+High-Level Design (HLD)
+Here’s a simplified architecture diagram of the notification system:
+
+Press enter or click to view image in full size
+
+Press enter or click to view image in full size
+
+Low-Level Design (LLD)
+Let’s break down the core data models and flow
+
+Channel enum
+public enum Channel {
+    EMAIL, SMS, PUSH
+}
+2. Notification class
+
+public interface Notification {
+    Channel getChannel();
+    String getRecipient();
+    String getContent();
+}
+
+public final class Email implements Notification {
+    private final String toEmail;
+    private final String body;
+    private final String subject;
+
+    public Email(String toEmail, String body, String subject) {
+        this.toEmail = toEmail;
+        this.body = body;
+        this.subject = subject;
+    }
+
+    @Override
+    public Channel getChannel() {
+        return Channel.EMAIL;
+    }
+
+    @Override
+    public String getRecipient() {
+        return toEmail;
+    }
+
+    @Override
+    public String getContent() {
+        return body;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+}
+
+class Push implements Notification {
+    private final String toDeviceId;
+    private final String title;
+    private final String payload;
+
+    public Push(String toDeviceId, String title, String payload) {
+        this.toDeviceId = toDeviceId;
+        this.title = title;
+        this.payload = payload;
+    }
+
+    @Override
+    public Channel getChannel() {
+        return Channel.PUSH;
+    }
+
+    @Override
+    public String getRecipient() {
+        return toDeviceId;
+    }
+
+    @Override
+    public String getContent() {
+        return payload;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+}
+
+class SMS implements Notification {
+    private final String toPhoneNumber;
+    private final String message;
+
+    public SMS(String toPhoneNumber, String message) {
+        this.toPhoneNumber = toPhoneNumber;
+        this.message = message;
+    }
+
+    @Override
+    public Channel getChannel() {
+        return Channel.SMS;
+    }
+
+    @Override
+    public String getRecipient() {
+        return toPhoneNumber;
+    }
+
+    @Override
+    public String getContent() {
+        return message;
+    }
+}
+3. Notification Sender
+
+public interface NotificationSender {
+    void send(Notification notification);
+}
+
+public interface SchedulableNotificationSender extends NotificationSender {
+    void schedule(Notification notification, LocalDateTime dateTime);
+}
+
+public class EmailNotificationSender implements SchedulableNotificationSender {
+    @Override
+    public void send(Notification notification) {
+        System.out.println("Sending EMAIL to " + notification.getRecipient());
+    }
+
+    @Override
+    public void schedule(Notification notification, LocalDateTime dateTime) {
+        System.out.println("Scheduling EMAIL to " + notification.getRecipient() + " at " + dateTime);
+    }
+}
+
+public class PushNotificationSender implements SchedulableNotificationSender {
+    @Override
+    public void send(Notification notification) {
+        System.out.println("Sending PUSH to " + notification.getRecipient());
+    }
+
+    @Override
+    public void schedule(Notification notification, LocalDateTime dateTime) {
+        System.out.println("Scheduling PUSH to " + notification.getRecipient() + " at " + dateTime);
+    }
+}
+
+public class SMSNotificationSender implements SchedulableNotificationSender {
+    @Override
+    public void send(Notification notification) {
+        System.out.println("Sending SMS to " + notification.getRecipient());
+    }
+    
+    @Override
+    public void schedule(Notification notification, LocalDateTime dateTime) {
+        System.out.println("Scheduling SMS to " + notification.getRecipient() + " at " + dateTime);
+    }
+}
+4. Notification Sender Factory
+
+public interface NotificationSenderFactory {
+    Optional<NotificationSender> getSender(Channel channel);
+    Optional<SchedulableNotificationSender> getSchedulableSender(Channel channel);
+}
+
+public class DefaultNotificationSenderFactory implements NotificationSenderFactory {
+    private final Map<Channel, NotificationSender> senderMap;
+    private final Map<Channel, SchedulableNotificationSender> schedulableSenderMap;
+
+    public DefaultNotificationSenderFactory() {
+        this.senderMap = new HashMap<>();
+        this.schedulableSenderMap = new HashMap<>();
+
+        // Register senders externally
+        EmailNotificationSender emailSender = new EmailNotificationSender();
+        PushNotificationSender pushSender = new PushNotificationSender();
+        SMSNotificationSender smsSender = new SMSNotificationSender();
+
+        senderMap.put(Channel.EMAIL, emailSender);
+        senderMap.put(Channel.PUSH, pushSender);
+        senderMap.put(Channel.SMS, smsSender);
+
+        schedulableSenderMap.put(Channel.EMAIL, emailSender);
+        schedulableSenderMap.put(Channel.PUSH, pushSender);
+        schedulableSenderMap.put(Channel.SMS, smsSender);
+    }
+
+    @Override
+    public Optional<NotificationSender> getSender(Channel channel) {
+        return Optional.ofNullable(senderMap.get(channel));
+    }
+
+    @Override
+    public Optional<SchedulableNotificationSender> getSchedulableSender(Channel channel) {
+        return Optional.ofNullable(schedulableSenderMap.get(channel));
+    }
+}
+5. Notification Dispatcher
+
+public class NotificationDispatcher {
+    private final NotificationSenderFactory senderFactory;
+
+    public NotificationDispatcher(NotificationSenderFactory senderFactory) {
+        this.senderFactory = senderFactory;
+    }
+
+    public void dispatch(Notification notification) {
+        senderFactory.getSender(notification.getChannel())
+            .ifPresentOrElse(
+                sender -> sender.send(notification),
+                () -> System.out.println("Unsupported notification channel.")
+            );
+    }
+
+    public void schedule(Notification notification, LocalDateTime dateTime) {
+        senderFactory.getSchedulableSender(notification.getChannel())
+            .ifPresentOrElse(
+                sender -> sender.schedule(notification, dateTime),
+                () -> System.out.println("Scheduling not supported for channel: " + notification.getChannel())
+            );
+    }
+}
+6. Usage
+
+public class NotificationSystemApp {
+    public static void main(String[] args) {
+        NotificationSenderFactory factory = new DefaultNotificationSenderFactory();
+        NotificationDispatcher dispatcher = new NotificationDispatcher(factory);
+
+        Notification email = new Email("user@example.com", "Hello!", "Welcome");
+        dispatcher.dispatch(email);
+        dispatcher.schedule(email, LocalDateTime.now().plusHours(2));
+
+        Notification sms = new SMS("1234567890", "Hi there");
+        dispatcher.dispatch(sms);
+        dispatcher.schedule(sms, LocalDateTime.now().plusMinutes(30));  // Will print unsupported
+    }
+}
+Applying SOLID Principles
+S — Single Responsibility Principle (SRP)
+
+Each class should have one, and only one, reason to change.
+
+A class should do one thing, and do it well.
+
+EmailNotificationSender only sends emails.
+NotificationDispatcher just dispatches to the appropriate sender.
+O — Open/Closed Principle (OCP)
+
+Software entities should be open for extension but closed for modification.
+
+You should be able to add new behaviour without modifying existing code.
+
+Add a new Channel (e.g., WHATSAPP) by:
+Creating WhatsApp implements Notification
+Creating WhatsAppNotificationSender
+Registering in the senderRegistry
+Existing code doesn’t change — you just extend.
+
+L — Liskov Substitution Principle (LSP)
+
+Subtypes must be substitutable for their base types.
+
+If Notification is expected, you should be able to pass an Email, SMS, or Push without breaking things.
+
+All Notification types correctly implement getChannel(), getRecipient(), etc.
+You can call dispatcher.dispatch(any Notification) without worrying which type it is.
+I — Interface Segregation Principle (ISP)
+
+Clients shouldn’t be forced to depend on interfaces they don’t use.
+
+Prefer small, focused interfaces over bloated ones.
+
+You can have a new channel where you can choose to implement NotificationSender and not SchedulableNotificationSender.
+
+D — Dependency Inversion Principle (DIP)
+
+High-level modules shouldn’t depend on low-level modules; both should depend on abstractions.
+
+Don’t hardcode dependencies — rely on interfaces and inject them.
+
+NotificationDispatcher depends on the abstraction NotificationSender, not concrete classes like EmailNotificationSender. The actual implementations are injected via the constructor. This allows us to inject mock or new channel senders easily, making the system extensible and testable.
+
+Design Patterns in Use
+Factory Pattern
+NotificationSenderFactory decouples object creation logic and allows dynamic dispatch based on Channel. You don’t want to hardcode the creation logic for each channel’s sender (Email, SMS, Push). H Based on the input Channel, the factory decides which concrete NotificationSender to return. This decouples instantiation from usage — adding a new channel requires only updating the factory, not the business logic.
+Strategy Pattern
+Each NotificationSender (Email, SMS, Push) is a separate strategy implementing a common interface (send, schedule). You can plug in new senders without changing core logic. Open/closed principle in action.
+Interface Segregation
+SchedulableNotificationSender extends NotificationSender, allowing support for both real-time and scheduled messages only where needed.
+Dependency Injection
+NotificationDispatcher receives the factory via constructor, making it easier to plug in mocks, test stubs, or alternate factories.
+Command Pattern (implicit)
+Each notification acts like a command object containing data + logic to be executed by a sender.
+Decoupling with Kafka/Queues
+To make the system resilient and scalable, we use a Message Queue like Kafka or AWS SQS between the Notification API and the Worker Services.
+
+Why a Message Queue?
+
+Decouples producers (API) and consumers (workers): They don’t need to be up at the same time.
+Scales horizontally: You can add more workers for any channel to handle increased load.
+Buffering: In case of spikes, messages are queued instead of being dropped.
+Fault tolerance: If a worker crashes, the message stays in the queue and can be retried.
+Scalability Approaches
+Channel-wise Horizontal Scaling
+Deploy independent consumer services for each channel. You can scale email workers separately from SMS or Push based on load.
+Topic Partitioning (Kafka)
+Kafka topics can be partitioned by user ID, channel, or priority, allowing concurrent processing without conflict.
+Retry Queues
+Failed notifications can be moved to a DLQ (Dead Letter Queue) or Retry Queue with exponential backoff.
+Rate Limiting & Throttling
+Each channel service can enforce provider-specific limits. For example, only X SMS per minute to comply with telecom regulations.
+Scheduled Notification Handling
+Scheduled notifications can be persisted in a dedicated scheduler DB or topic and processed by a cron-based worker or timer service.
+Challenges and Considerations
+Delivery Guarantees: Depending on the notification channel (e.g., SMS, email), you may not always be able to guarantee 100% delivery. Implementing mechanisms like delivery receipts and fallback strategies (e.g., retry on failure) can help improve reliability.
+Cost Management: Managing the costs associated with third-party services like Twilio for SMS or SendGrid for emails is important. Make sure to implement a strategy to keep track of costs and scale the system in a cost-efficient manner.
+Monitoring & Alerting: Integrate monitoring tools (e.g., Prometheus, Grafana) to keep an eye on queue lengths, worker health, and failure rates. Alerting should be set up for any anomalies.
+Consistency Considerations
+In distributed systems, consistency often trades off with availability and performance. For a notification system, here’s how we approach it:️
+
+Eventual Consistency
+
+We adopt eventual consistency in most parts of the system. For example:
+
+If a notification is sent to Kafka but the Email worker is briefly down, it will still be delivered once the worker is back online.
+Delivery status updates may not be immediately visible but will eventually sync to analytics/logging stores.
+Idempotency
+
+To avoid duplicate notifications, especially during retries, the system ensures idempotent operations:
+
+Each notification is assigned a unique request ID.
+Workers check if a notification has already been sent before re-sending.
+Delivery Guarantees
+We aim for at-least-once delivery:
+
+Messages in Kafka/SQS are not removed until acknowledged.
+This may result in duplicates (which idempotency handles), but avoids dropped messages.
+You could use exactly-once delivery with more complexity (e.g., Kafka transactions, deduplication cache, redis+bloom filter), but at scale, at-least-once with idempotency is simpler and more practical.
+
+Handling Failures with Dead Letter Queues (DLQ)
+
+In any scalable system, failures are inevitable. While retry mechanisms help, some failures can’t be recovered on the first try — whether due to permanent issues like invalid recipient data or provider failures. This is where a Dead Letter Queue (DLQ) comes into play.
+
+What is a Dead Letter Queue (DLQ)? A DLQ is a special queue used to capture messages that can’t be processed successfully after multiple attempts. Instead of letting failed messages be lost or dropped, they are stored in the DLQ for further inspection and action.
+
+How DLQ fits into the Notification System:
+
+Retry Mechanism: When a worker fails to process a notification (e.g., due to a temporary issue), the system can retry the operation a set number of times. If it still fails, the message is moved to the DLQ for manual intervention.
+Monitoring: Messages in the DLQ can be monitored, allowing you to track recurring issues and improve the system by addressing root causes.
+Error Handling: The DLQ allows for systematic error handling, ensuring that failed notifications don’t block the processing of other messages.
+By integrating DLQs into our notification system, we can ensure that even in the face of failure, our system remains resilient, and notifications that require special attention are handled appropriately.
+
+Conclusion: Building a Robust and Scalable Notification System
+Designing a notification system that can scale to handle millions of users across various channels is no small feat. However, by leveraging the right architectural patterns — such as decoupling with message queues, scaling horizontally by channel, and ensuring resilience with retry mechanisms and idempotency — you can build a system that is both reliable and efficient.
+
+Applying SOLID principles and design patterns like Factory and Strategy ensures that your system remains modular, maintainable, and extensible. Furthermore, keeping an eye on scalability, observability, and consistency will ensure that your system can grow and evolve without sacrificing performance or reliability.
+
+Have you built a scalable notification system before? Or maybe you’re facing challenges in designing one for your application? Share your experiences in the comments below or reach out with your thoughts on what you would add to this architecture!
